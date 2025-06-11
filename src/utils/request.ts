@@ -4,6 +4,7 @@ import { useUserStoreHook } from "@/store/modules/user.store";
 import { ResultEnum } from "@/enums/api/result.enum";
 import { getAccessToken } from "@/utils/auth";
 import router from "@/router";
+import { showToast, showNotify } from "vant";
 
 // 创建 axios 实例
 const service = axios.create({
@@ -37,7 +38,7 @@ service.interceptors.response.use(
     if (code === ResultEnum.SUCCESS) {
       return data;
     }
-    ElMessage.error(msg || "系统出错");
+    showToast(msg || "系统出错");
     return Promise.reject(new Error(msg || "Error"));
   },
   async (error) => {
@@ -53,7 +54,7 @@ service.interceptors.response.use(
         await handleSessionExpired();
         return Promise.reject(new Error(msg || "Error"));
       } else {
-        ElMessage.error(msg || "系统出错");
+        showToast(msg || "系统出错");
       }
     }
     return Promise.reject(error.message);
@@ -95,10 +96,9 @@ async function handleTokenRefresh(config: InternalAxiosRequestConfig) {
 }
 // 处理会话过期
 async function handleSessionExpired() {
-  ElNotification({
-    title: "提示",
+  showNotify({
+    type: "primary",
     message: "您的会话已过期，请重新登录",
-    type: "info",
   });
   await useUserStoreHook().clearSessionAndCache();
   router.push("/login");

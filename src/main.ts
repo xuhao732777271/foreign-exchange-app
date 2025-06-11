@@ -1,21 +1,74 @@
 import { createApp } from "vue";
 import App from "./App.vue";
-import setupPlugins from "@/plugins";
-
-// 暗黑主题样式
-import "element-plus/theme-chalk/dark/css-vars.css";
-// 暗黑模式自定义变量
-import "@/styles/dark/css-vars.css";
-import "@/styles/index.scss";
-import "uno.css";
-
-// 全局引入 animate.css
-import "animate.css";
-
-// 自动为某些默认事件（如 touchstart、wheel 等）添加 { passive: true },提升滚动性能并消除控制台的非被动事件监听警告
-import "default-passive-events";
+import router from "./router";
+import { createPinia } from "pinia";
+import i18n from "./lang";
+import "vant/lib/index.css";
+import {
+  Button,
+  Cell,
+  CellGroup,
+  NavBar,
+  Tabbar,
+  TabbarItem,
+  Icon,
+  Form,
+  Field,
+  Toast,
+  Dialog,
+  Loading,
+  PullRefresh,
+  List,
+  Swipe,
+  SwipeItem,
+  Image as VanImage,
+  Search,
+  Badge,
+  Grid,
+  GridItem,
+  Card,
+  Tab,
+  Tabs,
+  Tag,
+} from "vant";
 
 const app = createApp(App);
-// 注册插件
-app.use(setupPlugins);
+
+// 注册 Vant 组件
+const vantComponents = [
+  Button,
+  Cell,
+  CellGroup,
+  NavBar,
+  Tabbar,
+  TabbarItem,
+  Icon,
+  Form,
+  Field,
+  Toast,
+  Dialog,
+  Loading,
+  PullRefresh,
+  List,
+  Swipe,
+  SwipeItem,
+  VanImage,
+  Search,
+  Badge,
+  Grid,
+  GridItem,
+  Card,
+  Tab,
+  Tabs,
+  Tag,
+];
+
+vantComponents.forEach((component) => {
+  app.use(component);
+});
+
+app.use(createPinia());
+app.use(router);
+app.use(i18n);
+
 app.mount("#app");

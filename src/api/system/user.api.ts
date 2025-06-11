@@ -357,7 +357,7 @@ export interface UserProfileForm {
   email?: string;
 }
 
-/** 修改密码表单 */
+/** 密码修改表单 */
 export interface PasswordChangeForm {
   /** 原密码 */
   oldPassword?: string;

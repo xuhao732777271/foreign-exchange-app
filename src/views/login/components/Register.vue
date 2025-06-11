@@ -1,116 +1,134 @@
 <template>
-  <div>
-    <h3 text-center m-0 mb-20px>{{ t("login.reg") }}</h3>
-    <el-form ref="formRef" :model="model" :rules="rules" size="large">
+  <div class="register-form">
+    <h3 class="form-title">{{ t("login.reg") }}</h3>
+
+    <van-form ref="formRef" @submit="submit">
       <!-- 用户名 -->
-      <el-form-item prop="username">
-        <el-input v-model.trim="model.username" :placeholder="t('login.username')">
-          <template #prefix>
-            <el-icon><User /></el-icon>
-          </template>
-        </el-input>
-      </el-form-item>
+      <van-field
+        v-model.trim="model.username"
+        name="username"
+        :label="t('login.username')"
+        :placeholder="t('login.username')"
+        :rules="[{ required: true, message: t('login.message.username.required') }]"
+      >
+        <template #left-icon>
+          <van-icon name="user-o" />
+        </template>
+      </van-field>
 
       <!-- 密码 -->
-      <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
-        <el-form-item prop="password">
-          <el-input
-            v-model.trim="model.password"
-            :placeholder="t('login.password')"
-            type="password"
-            show-password
-            @keyup="checkCapsLock"
-            @keyup.enter="submit"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-      </el-tooltip>
+      <van-field
+        v-model.trim="model.password"
+        type="password"
+        name="password"
+        :label="t('login.password')"
+        :placeholder="t('login.password')"
+        :rules="[
+          { required: true, message: t('login.message.password.required') },
+          { min: 6, message: t('login.message.password.min') },
+        ]"
+        @keyup="checkCapsLock"
+      >
+        <template #left-icon>
+          <van-icon name="lock" />
+        </template>
+        <template #right-icon>
+          <van-icon name="eye-o" v-if="!showPassword" @click="showPassword = true" />
+          <van-icon name="closed-eye" v-else @click="showPassword = false" />
+        </template>
+      </van-field>
 
-      <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
-        <el-form-item prop="confirmPassword">
-          <el-input
-            v-model.trim="model.confirmPassword"
-            :placeholder="t('login.message.password.confirm')"
-            type="password"
-            show-password
-            @keyup="checkCapsLock"
-            @keyup.enter="submit"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-      </el-tooltip>
+      <!-- 确认密码 -->
+      <van-field
+        v-model.trim="model.confirmPassword"
+        type="password"
+        name="confirmPassword"
+        :label="t('login.message.password.confirm')"
+        :placeholder="t('login.message.password.confirm')"
+        :rules="[
+          { required: true, message: t('login.message.password.required') },
+          { min: 6, message: t('login.message.password.min') },
+          {
+            validator: (value) => value === model.password,
+            message: t('login.message.password.inconformity'),
+          },
+        ]"
+        @keyup="checkCapsLock"
+      >
+        <template #left-icon>
+          <van-icon name="lock" />
+        </template>
+        <template #right-icon>
+          <van-icon name="eye-o" v-if="!showConfirmPassword" @click="showConfirmPassword = true" />
+          <van-icon name="closed-eye" v-else @click="showConfirmPassword = false" />
+        </template>
+      </van-field>
 
       <!-- 验证码 -->
-      <el-form-item prop="captchaCode">
-        <div flex>
-          <el-input
-            v-model.trim="model.captchaCode"
-            :placeholder="t('login.captchaCode')"
-            @keyup.enter="submit"
-          >
-            <template #prefix>
-              <div class="i-svg:captcha" />
-            </template>
-          </el-input>
-          <div cursor-pointer h="[40px]" w="[120px]" flex-center ml-10px @click="getCaptcha">
-            <el-icon v-if="codeLoading" class="is-loading"><Loading /></el-icon>
+      <van-field
+        v-model.trim="model.captchaCode"
+        name="captchaCode"
+        :label="t('login.captchaCode')"
+        :placeholder="t('login.captchaCode')"
+        :rules="[{ required: true, message: t('login.message.captchaCode.required') }]"
+      >
+        <template #left-icon>
+          <van-icon name="shield-o" />
+        </template>
+        <template #button>
+          <van-image
+            v-if="!codeLoading"
+            :src="captchaBase64"
+            width="120"
+            height="40"
+            @click="getCaptcha"
+          />
+          <van-loading v-else type="spinner" />
+        </template>
+      </van-field>
 
-            <img
-              v-else
-              object-cover
-              border-rd-4px
-              p-1px
-              shadow="[0_0_0_1px_var(--el-border-color)_inset]"
-              :src="captchaBase64"
-              alt="code"
-            />
-          </div>
-        </div>
-      </el-form-item>
-
-      <el-form-item>
-        <div class="flex-y-center w-full gap-10px">
-          <el-checkbox v-model="isRead">{{ t("login.agree") }}</el-checkbox>
-          <el-link type="primary" underline="never">{{ t("login.userAgreement") }}</el-link>
-        </div>
-      </el-form-item>
+      <div class="agreement">
+        <van-checkbox v-model="isRead">{{ t("login.agree") }}</van-checkbox>
+        <van-button type="text" size="small">{{ t("login.userAgreement") }}</van-button>
+      </div>
 
       <!-- 注册按钮 -->
-      <el-form-item>
-        <el-button :loading="loading" type="success" class="w-full" @click="submit">
+      <div class="submit-btn">
+        <van-button round block type="primary" native-type="submit" :loading="loading">
           {{ t("login.register") }}
-        </el-button>
-      </el-form-item>
-    </el-form>
-    <div flex-center gap-10px>
-      <el-text size="default">{{ t("login.haveAccount") }}</el-text>
-      <el-link type="primary" underline="never" @click="toLogin">{{ t("login.login") }}</el-link>
+        </van-button>
+      </div>
+    </van-form>
+
+    <div class="login-link">
+      <span>{{ t("login.haveAccount") }}</span>
+      <van-button type="text" @click="toLogin">{{ t("login.login") }}</van-button>
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
-import type { FormInstance } from "element-plus";
-import { Lock } from "@element-plus/icons-vue";
+import type { FormInstance } from "vant";
 import { useI18n } from "vue-i18n";
 import AuthAPI, { type LoginFormData } from "@/api/auth.api";
+import { showToast } from "vant";
 
 const { t } = useI18n();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+  (_e: "update:modelValue", _value: "login"): void;
+}>();
+
 const toLogin = () => emit("update:modelValue", "login");
 
 onMounted(() => getCaptcha());
 
 const formRef = ref<FormInstance>();
-const loading = ref(false); // 按钮 loading 状态
-const isCapsLock = ref(false); // 是否大写锁定
-const captchaBase64 = ref(); // 验证码图片Base64字符串
+const loading = ref(false);
+const isCapsLock = ref(false);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+const captchaBase64 = ref();
 const isRead = ref(false);
 
 interface Model extends LoginFormData {
@@ -124,56 +142,6 @@ const model = ref<Model>({
   captchaKey: "",
   captchaCode: "",
   rememberMe: false,
-});
-
-const rules = computed(() => {
-  return {
-    username: [
-      {
-        required: true,
-        trigger: "blur",
-        message: t("login.message.username.required"),
-      },
-    ],
-    password: [
-      {
-        required: true,
-        trigger: "blur",
-        message: t("login.message.password.required"),
-      },
-      {
-        min: 6,
-        message: t("login.message.password.min"),
-        trigger: "blur",
-      },
-    ],
-    confirmPassword: [
-      {
-        required: true,
-        trigger: "blur",
-        message: t("login.message.password.required"),
-      },
-      {
-        min: 6,
-        message: t("login.message.password.min"),
-        trigger: "blur",
-      },
-      {
-        validator: (_: any, value: string) => {
-          return value === model.value.password;
-        },
-        trigger: "blur",
-        message: t("login.message.password.inconformity"),
-      },
-    ],
-    captchaCode: [
-      {
-        required: true,
-        trigger: "blur",
-        message: t("login.message.captchaCode.required"),
-      },
-    ],
-  };
 });
 
 // 获取验证码
@@ -190,14 +158,70 @@ function getCaptcha() {
 
 // 检查输入大小写
 function checkCapsLock(event: KeyboardEvent) {
-  // 防止浏览器密码自动填充时报错
   if (event instanceof KeyboardEvent) {
     isCapsLock.value = event.getModifierState("CapsLock");
   }
 }
 
 const submit = async () => {
-  await formRef.value?.validate();
-  ElMessage.warning("开发中 ...");
+  try {
+    if (!isRead.value) {
+      showToast(t("login.message.agreement.required"));
+      return;
+    }
+
+    await formRef.value?.validate();
+    loading.value = true;
+    // TODO: 实现注册逻辑
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    showToast("开发中...");
+  } catch (error) {
+    console.error("注册失败:", error);
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
+
+<style lang="scss" scoped>
+.register-form {
+  padding: 16px;
+  animation: slide-in 0.3s ease-out;
+}
+
+.form-title {
+  margin: 0 0 24px;
+  font-size: 24px;
+  color: var(--van-text-color);
+  text-align: center;
+}
+
+.agreement {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 16px 0;
+  color: var(--van-text-color-2);
+}
+
+.submit-btn {
+  margin: 24px 0;
+}
+
+.login-link {
+  margin: 16px 0;
+  color: var(--van-text-color-2);
+  text-align: center;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+</style>

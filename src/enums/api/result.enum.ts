@@ -1,23 +1,13 @@
 /**
- * 响应码枚举
+ * API 响应结果枚举
  */
-export const enum ResultEnum {
-  /**
-   * 成功
-   */
-  SUCCESS = "00000",
-  /**
-   * 错误
-   */
-  ERROR = "B0001",
-
-  /**
-   * 访问令牌无效或过期
-   */
-  ACCESS_TOKEN_INVALID = "A0230",
-
-  /**
-   * 刷新令牌无效或过期
-   */
-  REFRESH_TOKEN_INVALID = "A0231",
+export enum ResultEnum {
+  /** 成功 */
+  SUCCESS = 200,
+  /** 访问令牌无效 */
+  ACCESS_TOKEN_INVALID = 401,
+  /** 刷新令牌无效 */
+  REFRESH_TOKEN_INVALID = 402,
+  /** 服务器内部错误 */
+  SERVER_ERROR = 500,
 }
